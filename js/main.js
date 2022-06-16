@@ -13,16 +13,26 @@ var k = 1.5;
 var rho = 10;
 var s = 2.5;
 var g = 9.8;
+var CL = 100; //lift coifficint   
 var position = new THREE.Vector3(0, 0, 0);
 var velocity = new THREE.Vector3(0, 0, 0);
 var acceleration = new THREE.Vector3(0, 0, 0);
 
 // thurst force decleration 
-var thurstForce = new THREE.Vector3(0, 1, 0);
+var thurstForce = new THREE.Vector3(0, 1, 1);
+thurstForce.normalize();
 thurstForce.multiplyScalar(ve * (mass / dt));
 
+//lift force decleration
+var liftForce = new THREE.Vector3(1, 0, 0);
+liftForce.normalize();
+liftForce.multiplyScalar(0.5 * s * rho * CL);
+liftForce.multiply(velocity);
+liftForce.multiply(velocity);
+
 //air resistance force decleration
-var airResistanceForce = new THREE.Vector3(0, -1, 0);
+var airResistanceForce = new THREE.Vector3(0, -1, 1);
+airResistanceForce.normalize();
 airResistanceForce.multiplyScalar(0.5 * k * rho * s);
 airResistanceForce.multiply(velocity);
 airResistanceForce.multiply(velocity);
@@ -30,6 +40,7 @@ airResistanceForce.multiply(velocity);
 
 //Weight Force decleration
 var weight = new THREE.Vector3(0, -1, 0);
+weight.normalize();
 weight.multiplyScalar(mass * g);
 
 
@@ -44,6 +55,7 @@ function update() {
     applyForce(thurstForce);
     applyForce(weight);
     applyForce(airResistanceForce);
+    applyForce(liftForce);
     velocity.add(acceleration);
     position.add(velocity);
     acceleration.multiplyScalar(0);
@@ -60,7 +72,6 @@ function init() {
     /*creating a perspectiveCamera*/
     var camera = createPerspectivCamera();
     camera.position.z = -250;
-    //camera.lookAt(position);
     /*creating light*/
     const light = new THREE.AmbientLight(0x404040, 5); // soft white light
     /*adding models*/
@@ -128,10 +139,6 @@ function animate(renderer, scene, camera, controls) {
             loadedModel.scene.position.x = position.x;
             loadedModel.scene.position.y = position.y;
             loadedModel.scene.position.z = position.z;
-            camera.position.x = position.x;
-            camera.position.y = position.y;
-            // camera.position.z = position.z - 5;
-            // camera.lookAt(position.x, position.y + 20, position.z - 1000);
         }
 
         if (move == 0) {
