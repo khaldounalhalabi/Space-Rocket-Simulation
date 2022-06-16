@@ -5,35 +5,51 @@ import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples
 
 
 
-
+var loadedModel;
 var mass = 0.0005;
 var ve = 0.001;
 var dt = 0.0001;
-var k = 1.5;
-var rho = 10;
-var s = 2.5;
+var k = 0.0015;
+var rho = 0.001;
+var s = 0.03;
 var g = 9.8;
-var CL = 100; //lift coifficint   
+var CL = 10; //lift coifficint   
+var G = 1; //gravity const
+var theta = Math.PI / 6;
+var IDelta = 5;
+var earthMass = 5; //5.972 * Math.pow(10, 24);
 var position = new THREE.Vector3(0, 0, 0);
 var velocity = new THREE.Vector3(0, 0, 0);
+var angularVelocity = new THREE.Vector3(0, 0, 0);
 var acceleration = new THREE.Vector3(0, 0, 0);
+var angularAcceleration = new THREE.Vector3(0, 0, 0);
 
 // thurst force decleration 
-var thurstForce = new THREE.Vector3(0, 1, 1);
+var thurstForce = new THREE.Vector3(0, 1, 0);
 thurstForce.normalize();
-thurstForce.multiplyScalar(ve * (mass / dt));
+thurstForce.setLength(ve * (mass / dt));
 
 //lift force decleration
 var liftForce = new THREE.Vector3(1, 0, 0);
 liftForce.normalize();
-liftForce.multiplyScalar(0.5 * s * rho * CL);
+liftForce.setLength(0.5 * s * rho * CL);
 liftForce.multiply(velocity);
 liftForce.multiply(velocity);
 
+
+/* gravitational force */
+var center = new THREE.Vector3(0, -100, 0);
+var gravityForce = new THREE.Vector3(0, -1, 0);
+var distanceSq = gravityForce.distanceToSquared(center);
+gravityForce.setLength((G * earthMass * mass) / distanceSq);
+
+
+
+
 //air resistance force decleration
-var airResistanceForce = new THREE.Vector3(0, -1, 1);
+var airResistanceForce = new THREE.Vector3(0, -1, 0);
 airResistanceForce.normalize();
-airResistanceForce.multiplyScalar(0.5 * k * rho * s);
+airResistanceForce.setLength(0.5 * k * rho * s);
 airResistanceForce.multiply(velocity);
 airResistanceForce.multiply(velocity);
 
@@ -41,7 +57,14 @@ airResistanceForce.multiply(velocity);
 //Weight Force decleration
 var weight = new THREE.Vector3(0, -1, 0);
 weight.normalize();
-weight.multiplyScalar(mass * g);
+weight.setLength(mass * g);
+
+
+// Thurst Force Moment Decleration
+var thrustMoment = new THREE.Vector3(0, 0, 0);
+thrustMoment.normalize();
+var jetSpanRadius = new THREE.Vector3(100, 0, 1);
+thrustMoment.crossVectors(thurstForce, jetSpanRadius);
 
 
 function applyForce(force) {
@@ -51,14 +74,26 @@ function applyForce(force) {
     acceleration.add(f);
 }
 
+function applyMoment(Moment) {
+    var M = new THREE.Vector3;
+    M.copy(Moment);
+    M = M.divideScalar(IDelta);
+    angularAcceleration.add(M);
+}
+
 function update() {
     applyForce(thurstForce);
     applyForce(weight);
     applyForce(airResistanceForce);
     applyForce(liftForce);
+    applyForce(gravityForce);
+    applyMoment(thrustMoment);
     velocity.add(acceleration);
+    angularVelocity.add(angularAcceleration);
     position.add(velocity);
+    position.add(angularVelocity);
     acceleration.multiplyScalar(0);
+    angularAcceleration.multiplyScalar(0);
 }
 
 
@@ -113,10 +148,14 @@ function init() {
     //controls.maxDistance = 250 ;
     animate(renderer, scene, camera, controls);
 }
+
+
+
+
 /*Creating an animating scene*/
 
 var move = 0;
-var loadedModel;
+
 
 function animate(renderer, scene, camera, controls) {
     renderer.render(scene, camera);
@@ -139,6 +178,7 @@ function animate(renderer, scene, camera, controls) {
             loadedModel.scene.position.x = position.x;
             loadedModel.scene.position.y = position.y;
             loadedModel.scene.position.z = position.z;
+            loadedModel.scene.lookAt(thrustMoment);
         }
 
         if (move == 0) {
@@ -146,6 +186,9 @@ function animate(renderer, scene, camera, controls) {
             position.multiplyScalar(0);
             velocity.multiplyScalar(0);
             acceleration.multiplyScalar(0);
+            angularAcceleration.multiplyScalar(0);
+            angularVelocity.multiplyScalar(0);
+            loadedModel.scene.lookAt(0, 0, 0);
         }
     }
     requestAnimationFrame(function() {
