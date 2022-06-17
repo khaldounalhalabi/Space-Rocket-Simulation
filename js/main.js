@@ -3,8 +3,7 @@ import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.121.1/examples/
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/loaders/DRACOLoader.js'
 
-
-
+var scene = new THREE.Scene();
 var loadedModel;
 var mass = 0.0005;
 var ve = 0.001;
@@ -92,13 +91,8 @@ function update() {
     angularVelocity.add(angularAcceleration);
     position.add(velocity);
     position.add(angularVelocity);
-    acceleration.multiplyScalar(0);
-    angularAcceleration.multiplyScalar(0);
+
 }
-
-
-var scene = new THREE.Scene();
-
 
 
 function init() {
@@ -178,11 +172,19 @@ function animate(renderer, scene, camera, controls) {
             loadedModel.scene.position.x = position.x;
             loadedModel.scene.position.y = position.y;
             loadedModel.scene.position.z = position.z;
-            loadedModel.scene.lookAt(thrustMoment);
+            var holder = new THREE.Vector3;
+            holder.copy(position);
+            holder.applyAxisAngle(position, Math.PI);
+            loadedModel.scene.lookAt(holder);
+            acceleration.multiplyScalar(0);
+            angularAcceleration.multiplyScalar(0);
+            camera.lookAt(position);
         }
 
         if (move == 0) {
             loadedModel.scene.position.y = 0;
+            loadedModel.scene.position.z = 0;
+            loadedModel.scene.position.x = 0;
             position.multiplyScalar(0);
             velocity.multiplyScalar(0);
             acceleration.multiplyScalar(0);
@@ -250,6 +252,7 @@ function createPerspectivCamera() {
     pcamera.position.x = 0;
     pcamera.position.y = 200;
     pcamera.position.z = 0;
+
     // pcamera.scale.x = 10;
     // pcamera.scale.y = 10;
     // pcamera.scale.z = 10;
