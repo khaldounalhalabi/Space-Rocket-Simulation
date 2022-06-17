@@ -12,9 +12,9 @@ var k = 0.0015;
 var rho = 0.001;
 var s = 0.03;
 var g = 9.8;
-var CL = 10; //lift coifficint   
+var CL = 10; //lift coifficint
 var G = 1; //gravity const
-var theta = Math.PI / 6;
+var theta = Math.PI / 3;
 var IDelta = 5;
 var earthMass = 5; //5.972 * Math.pow(10, 24);
 var position = new THREE.Vector3(0, 0, 0);
@@ -23,10 +23,10 @@ var angularVelocity = new THREE.Vector3(0, 0, 0);
 var acceleration = new THREE.Vector3(0, 0, 0);
 var angularAcceleration = new THREE.Vector3(0, 0, 0);
 
-// thurst force decleration 
-var thurstForce = new THREE.Vector3(0, 1, 0);
-thurstForce.normalize();
-thurstForce.setLength(ve * (mass / dt));
+// thrust force decleration
+var thrustForce = new THREE.Vector3(0, 1, 0);
+thrustForce.normalize();
+thrustForce.setLength(ve * (mass / dt));
 
 //lift force decleration
 var liftForce = new THREE.Vector3(1, 0, 0);
@@ -59,11 +59,12 @@ weight.normalize();
 weight.setLength(mass * g);
 
 
-// Thurst Force Moment Decleration
+// thrust Force Moment Decleration
 var thrustMoment = new THREE.Vector3(0, 0, 0);
 thrustMoment.normalize();
 var jetSpanRadius = new THREE.Vector3(100, 0, 1);
-thrustMoment.crossVectors(thurstForce, jetSpanRadius);
+thrustMoment.crossVectors(thrustForce, jetSpanRadius);
+thrustMoment.multiplyScalar(theta);
 
 
 function applyForce(force) {
@@ -81,7 +82,21 @@ function applyMoment(Moment) {
 }
 
 function update() {
-    applyForce(thurstForce);
+    applyForce(thrustForce);
+    applyForce(weight);
+    applyForce(airResistanceForce);
+    applyForce(liftForce);
+    applyForce(gravityForce);
+    velocity.add(acceleration);
+    angularVelocity.add(angularAcceleration);
+    position.add(velocity);
+    position.add(angularVelocity);
+
+}
+
+function updateWithMoment() {
+
+    applyForce(thrustForce);
     applyForce(weight);
     applyForce(airResistanceForce);
     applyForce(liftForce);
@@ -91,7 +106,6 @@ function update() {
     angularVelocity.add(angularAcceleration);
     position.add(velocity);
     position.add(angularVelocity);
-
 }
 
 
@@ -104,12 +118,12 @@ function init() {
     /*creating light*/
     const light = new THREE.AmbientLight(0x404040, 5); // soft white light
     /*adding models*/
-    createRocket(0, 0, 0);
+    createRocket();
     //
     // createCylinderWorld() ;
-    createEarth();
-    createPlane();
-
+    //createEarth();
+    //createPlane();
+    createCylinderWorld();
     /*adding objects to the Scene*/
     scene.add(light);
 
@@ -149,7 +163,7 @@ function init() {
 /*Creating an animating scene*/
 
 var move = 0;
-
+var y;
 
 function animate(renderer, scene, camera, controls) {
     renderer.render(scene, camera);
@@ -168,17 +182,35 @@ function animate(renderer, scene, camera, controls) {
 
 
         if (move == 1) {
-            update();
-            loadedModel.scene.position.x = position.x;
-            loadedModel.scene.position.y = position.y;
-            loadedModel.scene.position.z = position.z;
-            var holder = new THREE.Vector3;
-            holder.copy(position);
-            holder.applyAxisAngle(position, Math.PI);
-            loadedModel.scene.lookAt(holder);
-            acceleration.multiplyScalar(0);
-            angularAcceleration.multiplyScalar(0);
-            camera.lookAt(position);
+
+            y = loadedModel.scene.position.y;
+            if (y >= 600) {
+                //applyMoment(thrustMoment);
+
+                console.log('z', loadedModel.scene.position.z);
+                console.log('x', loadedModel.scene.position.x);
+                updateWithMoment();
+                loadedModel.scene.position.x = position.x;
+                loadedModel.scene.position.y = position.y;
+                loadedModel.scene.position.z = position.z;
+                loadedModel.scene.lookAt(angularAcceleration);
+                //loadedModel.scene.rotateX(-Math.PI / 2);
+                acceleration.multiplyScalar(0);
+                angularAcceleration.multiplyScalar(0);
+                camera.lookAt(position);
+                camera.position.y = position.y - 100;
+                // camera.position.x = position.x ;
+            } else {
+
+                update();
+                loadedModel.scene.position.x = position.x;
+                loadedModel.scene.position.y = position.y;
+                loadedModel.scene.position.z = position.z;
+
+                acceleration.multiplyScalar(0);
+                angularAcceleration.multiplyScalar(0);
+
+            }
         }
 
         if (move == 0) {
@@ -198,18 +230,18 @@ function animate(renderer, scene, camera, controls) {
     });
 }
 
-function createRocket(rx, ry, rz) {
+function createRocket() {
     const dracoLoader = new DRACOLoader();
     const RocketLoader = new GLTFLoader().setPath('models/rocket/');
     RocketLoader.setDRACOLoader(dracoLoader);
-    RocketLoader.load('scene.gltf', function(gltf) {
+    RocketLoader.load('Space Rocket.gltf', function(gltf) {
         loadedModel = gltf;
-        gltf.scene.position.x = rx;
-        gltf.scene.position.y = ry;
-        gltf.scene.position.z = rz;
-        gltf.scene.scale.x = 10;
-        gltf.scene.scale.y = 10;
-        gltf.scene.scale.z = 10;
+        gltf.scene.position.x = 0;
+        gltf.scene.position.y = 0;
+        gltf.scene.position.z = 0;
+        gltf.scene.scale.x = 100;
+        gltf.scene.scale.y = 100;
+        gltf.scene.scale.z = 100;
         scene.add(gltf.scene);
         gltf.asset;
         gltf.scene;
@@ -248,7 +280,7 @@ function createSkybox() {
 }
 
 function createPerspectivCamera() {
-    var pcamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 50000);
+    var pcamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500000);
     pcamera.position.x = 0;
     pcamera.position.y = 200;
     pcamera.position.z = 0;
@@ -276,7 +308,8 @@ function createCylinderWorld() {
     back.wrapT = THREE.RepeatWrapping;
     down.wrapS = THREE.RepeatWrapping;
     down.wrapT = THREE.RepeatWrapping;
-    const geometry = new THREE.CylinderGeometry(500, 500, 1000, 100);
+    const geometry = new THREE.CylinderGeometry(50000, 50000, 100000, 100);
+    geometry.translate(0, 49800, 0);
     const material = [front, back, down];
     const cylinder = new THREE.Mesh(geometry, material);
     scene.add(cylinder);
@@ -299,7 +332,7 @@ function createPlane() {
     const circle = new THREE.Mesh(geometry, material);
     circle.rotation.x = Math.PI / 2;
     circle.position.x = 0;
-    circle.position.y = 0;
+    circle.position.y = -200;
     circle.position.z = 0;
     scene.add(circle);
 }
