@@ -5,7 +5,9 @@ import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples
 
 var scene = new THREE.Scene();
 var loadedModel;
-var mass = 0.0005;
+var rocketMass = 0.0005;
+var fuelMass = 0.0005;
+var mass = fuelMass + rocketMass;
 var ve = 0.001;
 var dt = 0.0001;
 var k = 0.0015;
@@ -114,15 +116,15 @@ function init() {
     var gui = new dat.GUI();
     /*creating a perspectiveCamera*/
     var camera = createPerspectivCamera();
-    camera.position.z = -250;
+
     /*creating light*/
     const light = new THREE.AmbientLight(0x404040, 5); // soft white light
     /*adding models*/
     createRocket();
-    //
+
     // createCylinderWorld() ;
-    //createEarth();
-    //createPlane();
+    // createEarth();
+    // createPlane();
     createCylinderWorld();
     /*adding objects to the Scene*/
     scene.add(light);
@@ -184,8 +186,10 @@ function animate(renderer, scene, camera, controls) {
         if (move == 1) {
 
             y = loadedModel.scene.position.y;
-            if (y >= 600) {
-                //applyMoment(thrustMoment);
+            if (y < 0) {
+                loadedModel.scene.position.y = 0;
+            } else if (y >= 600) {
+
 
                 console.log('z', loadedModel.scene.position.z);
                 console.log('x', loadedModel.scene.position.x);
@@ -194,11 +198,13 @@ function animate(renderer, scene, camera, controls) {
                 loadedModel.scene.position.y = position.y;
                 loadedModel.scene.position.z = position.z;
                 loadedModel.scene.lookAt(angularAcceleration);
-                //loadedModel.scene.rotateX(-Math.PI / 2);
+                loadedModel.scene.rotateX(-Math.PI / 2);
                 acceleration.multiplyScalar(0);
                 angularAcceleration.multiplyScalar(0);
                 camera.lookAt(position);
                 camera.position.y = position.y - 100;
+                camera.position.z = position.z + 1000;
+
                 // camera.position.x = position.x ;
             } else {
 
@@ -206,7 +212,9 @@ function animate(renderer, scene, camera, controls) {
                 loadedModel.scene.position.x = position.x;
                 loadedModel.scene.position.y = position.y;
                 loadedModel.scene.position.z = position.z;
-
+                camera.lookAt(position);
+                camera.position.y = position.y - 100;
+                camera.position.z = position.z + 1000;
                 acceleration.multiplyScalar(0);
                 angularAcceleration.multiplyScalar(0);
 
@@ -223,6 +231,9 @@ function animate(renderer, scene, camera, controls) {
             angularAcceleration.multiplyScalar(0);
             angularVelocity.multiplyScalar(0);
             loadedModel.scene.lookAt(0, 0, 0);
+            camera.position.y = position.y - 100;
+            camera.position.z = position.z + 1000;
+
         }
     }
     requestAnimationFrame(function() {
@@ -281,19 +292,6 @@ function createSkybox() {
 
 function createPerspectivCamera() {
     var pcamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500000);
-    pcamera.position.x = 0;
-    pcamera.position.y = 200;
-    pcamera.position.z = 0;
-
-    // pcamera.scale.x = 10;
-    // pcamera.scale.y = 10;
-    // pcamera.scale.z = 10;
-
-    pcamera.target = new THREE.Vector3(0, -500, 0);
-    // pcamera.rotateX(Math.PI/2) ;
-
-    //pcamera.position.set(0,-400,-10) ;
-    //pcamera.getWorldDirection(new THREE.Vector3(0 ,-400 , -5)) ; //telling the camera to look at the point (0,0,0)
     return pcamera;
 }
 
@@ -336,5 +334,4 @@ function createPlane() {
     circle.position.z = 0;
     scene.add(circle);
 }
-
 init();
