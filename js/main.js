@@ -5,14 +5,14 @@ import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples
 
 var scene = new THREE.Scene();
 var loadedModel;
-var rocketMass = 0.0005;
+var rocketMass = 0.005;
 var fuelMass = 0.0005;
 var mass = fuelMass + rocketMass;
 var ve = 0.001;
 var dt = 0.0001;
-var k = 0.0015;
-var rho = 0.001;
-var s = 0.03;
+var k = 0.000015;
+var rho = 0.00001;
+var s = 0.0003;
 var g = 9.8;
 var CL = 10; //lift coifficint
 var G = 1; //gravity const
@@ -24,6 +24,10 @@ var velocity = new THREE.Vector3(0, 0, 0);
 var angularVelocity = new THREE.Vector3(0, 0, 0);
 var acceleration = new THREE.Vector3(0, 0, 0);
 var angularAcceleration = new THREE.Vector3(0, 0, 0);
+
+
+var fallingVelocity = new THREE.Vector3(0, 0, 0);
+var fallingAcceleration = new THREE.Vector3(0, 0, 0);
 
 // thrust force decleration
 var thrustForce = new THREE.Vector3(0, 1, 0);
@@ -55,6 +59,15 @@ airResistanceForce.multiply(velocity);
 airResistanceForce.multiply(velocity);
 
 
+
+//falling air resistance force decleration
+var fallingAirResistanceForce = new THREE.Vector3(0, 1, 0);
+fallingAirResistanceForce.normalize();
+fallingAirResistanceForce.setLength(0.5 * k * rho * s);
+fallingAirResistanceForce.multiply(fallingVelocity);
+fallingAirResistanceForce.multiply(fallingVelocity);
+
+
 //Weight Force decleration
 var weight = new THREE.Vector3(0, -1, 0);
 weight.normalize();
@@ -74,6 +87,12 @@ function applyForce(force) {
     f.copy(force);
     f = f.divideScalar(mass);
     acceleration.add(f);
+}
+
+function applyForceFalling(force) {
+    var f = new THREE.Vector3
+    f = f.copy(force);
+    fallingAcceleration.add(f);
 }
 
 function applyMoment(Moment) {
@@ -108,6 +127,13 @@ function updateWithMoment() {
     angularVelocity.add(angularAcceleration);
     position.add(velocity);
     position.add(angularVelocity);
+}
+
+function updateFalling() {
+    applyForceFalling(weight);
+    applyForceFalling(fallingAirResistanceForce);
+    fallingVelocity.add(fallingAcceleration);
+    position.add(fallingVelocity);
 }
 
 
@@ -166,6 +192,7 @@ function init() {
 
 var move = 0;
 var y;
+var i = 0;
 
 function animate(renderer, scene, camera, controls) {
     renderer.render(scene, camera);
@@ -181,18 +208,13 @@ function animate(renderer, scene, camera, controls) {
             }
         });
 
-
-
         if (move == 1) {
 
+            i++;
             y = loadedModel.scene.position.y;
             if (y < 0) {
                 loadedModel.scene.position.y = 0;
-            } else if (y >= 600) {
-
-
-                console.log('z', loadedModel.scene.position.z);
-                console.log('x', loadedModel.scene.position.x);
+            } else if (y >= 600 && fuelMass > 0) {
                 updateWithMoment();
                 loadedModel.scene.position.x = position.x;
                 loadedModel.scene.position.y = position.y;
@@ -204,9 +226,11 @@ function animate(renderer, scene, camera, controls) {
                 camera.lookAt(position);
                 camera.position.y = position.y - 100;
                 camera.position.z = position.z + 1000;
-
-                // camera.position.x = position.x ;
-            } else {
+                if (i == 59) {
+                    fuelMass = fuelMass - 0.0001;
+                    i = 0;
+                }
+            } else if (fuelMass > 0) {
 
                 update();
                 loadedModel.scene.position.x = position.x;
@@ -217,7 +241,24 @@ function animate(renderer, scene, camera, controls) {
                 camera.position.z = position.z + 1000;
                 acceleration.multiplyScalar(0);
                 angularAcceleration.multiplyScalar(0);
+                if (i == 59) {
+                    fuelMass = fuelMass - 0.0001;
+                    i = 0;
+                }
 
+            } else if (fuelMass <= 0 && position.y > 0) {
+
+                updateFalling();
+                console.log('fall acceleration', fallingAcceleration.y);
+                loadedModel.scene.position.x = position.x;
+                loadedModel.scene.position.y = position.y;
+                loadedModel.scene.position.z = position.z;
+                camera.lookAt(position);
+                camera.position.y = position.y - 100;
+                camera.position.z = position.z + 1000;
+                loadedModel.scene.lookAt(fallingAcceleration);
+                loadedModel.scene.rotateX(-Math.PI / 2);
+                fallingAcceleration.multiplyScalar(0);
             }
         }
 
