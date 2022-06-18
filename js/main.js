@@ -5,13 +5,14 @@ import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples
 
 var scene = new THREE.Scene();
 var loadedModel;
-var rocketMass = 0.005;
-var fuelMass = 0.0005;
+var rocketMass = 0.0005;
+var fuelMass = 0.00003;
 var mass = fuelMass + rocketMass;
-var ve = 0.001;
+var deltaMass = 0.0001;
+var ve = 0.009;
 var dt = 0.0001;
-var k = 0.000015;
-var rho = 0.00001;
+var k = 0.0015;
+var rho = 0.0001;
 var s = 0.0003;
 var g = 9.8;
 var CL = 10; //lift coifficint
@@ -19,6 +20,7 @@ var G = 1; //gravity const
 var theta = Math.PI / 3;
 var IDelta = 5;
 var earthMass = 5; //5.972 * Math.pow(10, 24);
+
 var position = new THREE.Vector3(0, 0, 0);
 var velocity = new THREE.Vector3(0, 0, 0);
 var angularVelocity = new THREE.Vector3(0, 0, 0);
@@ -32,7 +34,7 @@ var fallingAcceleration = new THREE.Vector3(0, 0, 0);
 // thrust force decleration
 var thrustForce = new THREE.Vector3(0, 1, 0);
 thrustForce.normalize();
-thrustForce.setLength(ve * (mass / dt));
+thrustForce.setLength(ve * (deltaMass / dt));
 
 //lift force decleration
 var liftForce = new THREE.Vector3(1, 0, 0);
@@ -87,6 +89,7 @@ function applyForce(force) {
     f.copy(force);
     f = f.divideScalar(mass);
     acceleration.add(f);
+    acceleration.multiplyScalar(Math.pow(1.5, -1));
 }
 
 function applyForceFalling(force) {
@@ -128,11 +131,13 @@ function updateWithMoment() {
     position.add(velocity);
     position.add(angularVelocity);
 }
+var x = false;
 
 function updateFalling() {
     applyForceFalling(weight);
     applyForceFalling(fallingAirResistanceForce);
     fallingVelocity.add(fallingAcceleration);
+    fallingVelocity.multiplyScalar(1.01);
     position.add(fallingVelocity);
 }
 
@@ -149,9 +154,9 @@ function init() {
     createRocket();
 
     // createCylinderWorld() ;
-    // createEarth();
-    // createPlane();
-    createCylinderWorld();
+    createEarth();
+    createPlane();
+    //createCylinderWorld();
     /*adding objects to the Scene*/
     scene.add(light);
 
@@ -227,7 +232,7 @@ function animate(renderer, scene, camera, controls) {
                 camera.position.y = position.y - 100;
                 camera.position.z = position.z + 1000;
                 if (i == 59) {
-                    fuelMass = fuelMass - 0.0001;
+                    fuelMass = fuelMass - 0.00001;
                     i = 0;
                 }
             } else if (fuelMass > 0) {
@@ -242,7 +247,8 @@ function animate(renderer, scene, camera, controls) {
                 acceleration.multiplyScalar(0);
                 angularAcceleration.multiplyScalar(0);
                 if (i == 59) {
-                    fuelMass = fuelMass - 0.0001;
+                    fuelMass = fuelMass - 0.00001;
+                    console.log('fuelMass', fuelMass);
                     i = 0;
                 }
 
@@ -332,7 +338,7 @@ function createSkybox() {
 }
 
 function createPerspectivCamera() {
-    var pcamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500000);
+    var pcamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000000);
     return pcamera;
 }
 
@@ -355,7 +361,7 @@ function createCylinderWorld() {
 }
 
 function createEarth() {
-    const geometry = new THREE.SphereGeometry(10000, 64, 32);
+    const geometry = new THREE.SphereGeometry(1000000, 64, 32);
     const material = new THREE.MeshBasicMaterial({ color: 'rgb(135,206,235)', side: THREE.DoubleSide });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
