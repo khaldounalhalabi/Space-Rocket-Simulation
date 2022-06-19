@@ -1,0 +1,11 @@
+Model Information:
+* title:	Mercury- Redstone Launch Vehicle
+* source:	https://sketchfab.com/3d-models/mercury-redstone-launch-vehicle-d1c09c4321e443cd956370dadabd04d9
+* author:	Stanley Creative (https://sketchfab.com/Stanley_Creative)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Mercury- Redstone Launch Vehicle" (https://sketchfab.com/3d-models/mercury-redstone-launch-vehicle-d1c09c4321e443cd956370dadabd04d9) by Stanley Creative (https://sketchfab.com/Stanley_Creative) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

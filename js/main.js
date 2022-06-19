@@ -20,6 +20,7 @@ var G = 1; //gravity const
 var theta = Math.PI / 3;
 var IDelta = 5;
 var earthMass = 5; //5.972 * Math.pow(10, 24);
+var rocket = 2;
 
 var position = new THREE.Vector3(0, 0, 0);
 var velocity = new THREE.Vector3(0, 0, 0);
@@ -131,7 +132,6 @@ function updateWithMoment() {
     position.add(velocity);
     position.add(angularVelocity);
 }
-var x = false;
 
 function updateFalling() {
     applyForceFalling(weight);
@@ -150,23 +150,23 @@ function init() {
 
     /*creating light*/
     const light = new THREE.AmbientLight(0x404040, 5); // soft white light
-    /*adding models*/
-    createRocket();
 
-    // createCylinderWorld() ;
-    createEarth();
-    createPlane();
-    //createCylinderWorld();
+    switch (rocket) {
+        case 1:
+            /*adding models*/
+            createRocket1();
+            /*create world */
+            createEarth();
+            createPlane(0, -200, 0);
+            break;
+        case 2:
+            createRocket3();
+            createEarth();
+            createPlane(0, 0, 0);
+    }
+
     /*adding objects to the Scene*/
     scene.add(light);
-
-    // gui.add(this, "ve", 0, 10000);
-    // gui.add(this, "k", 0, 10000);
-    // gui.add(this, "rho", 0, 10000);
-    // gui.add(this, "s", 0, 10000);
-    // gui.add(this, "g", 0, 10000);
-    // gui.add(this, "mass", 0, 10000);
-
     var renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById("webgl").appendChild(renderer.domElement);
@@ -186,7 +186,6 @@ function init() {
         dct.multiplyScalar(height / dct.y);
         camera.position.copy(controls.target).sub(dct); //Clamp to top of cylinder
     }
-    //controls.maxDistance = 250 ;
     animate(renderer, scene, camera, controls);
 }
 
@@ -278,7 +277,7 @@ function animate(renderer, scene, camera, controls) {
             angularAcceleration.multiplyScalar(0);
             angularVelocity.multiplyScalar(0);
             loadedModel.scene.lookAt(0, 0, 0);
-            camera.position.y = position.y - 100;
+            camera.position.y = position.y + 150;
             camera.position.z = position.z + 1000;
 
         }
@@ -288,15 +287,34 @@ function animate(renderer, scene, camera, controls) {
     });
 }
 
-function createRocket() {
+function createRocket3() {
     const dracoLoader = new DRACOLoader();
-    const RocketLoader = new GLTFLoader().setPath('models/rocket/');
+    const RocketLoader = new GLTFLoader().setPath('models/rocket/rocket3/');
+    RocketLoader.setDRACOLoader(dracoLoader);
+    RocketLoader.load('MeteorII V6.gltf', function(gltf) {
+        loadedModel = gltf;
+        gltf.scene.position.x = 0;
+        gltf.scene.position.y = -100;
+        gltf.scene.position.z = 0;
+        gltf.scene.scale.x = 100;
+        gltf.scene.scale.y = 100;
+        gltf.scene.scale.z = 100;
+        // gltf.scene.rotateX = -Math.PI / 2;
+        scene.add(gltf.scene);
+        gltf.asset;
+        gltf.scene;
+        gltf.scenes;
+        gltf.cameras;
+
+    });
+}
+
+function createRocket1() {
+    const dracoLoader = new DRACOLoader();
+    const RocketLoader = new GLTFLoader().setPath('models/rocket/rocket1/');
     RocketLoader.setDRACOLoader(dracoLoader);
     RocketLoader.load('Space Rocket.gltf', function(gltf) {
         loadedModel = gltf;
-        gltf.scene.position.x = 0;
-        gltf.scene.position.y = 0;
-        gltf.scene.position.z = 0;
         gltf.scene.scale.x = 100;
         gltf.scene.scale.y = 100;
         gltf.scene.scale.z = 100;
@@ -309,56 +327,12 @@ function createRocket() {
     });
 }
 
-function createSkybox() {
-    /*loading skybox texture*/
-    const textureLoader = new THREE.TextureLoader();
-    const front = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/sky.jpg'), side: THREE.DoubleSide });
-    const back = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/sky.jpg'), side: THREE.DoubleSide });
-    const up = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/sky.jpg'), side: THREE.DoubleSide });
-    const down = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/grass.jpg'), side: THREE.DoubleSide });
-    const right = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/sky.jpg'), side: THREE.DoubleSide });
-    const left = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/sky.jpg'), side: THREE.DoubleSide });
-    front.wrapS = THREE.RepeatWrapping;
-    front.wrapT = THREE.RepeatWrapping;
-    back.wrapS = THREE.RepeatWrapping;
-    back.wrapT = THREE.RepeatWrapping;
-    up.wrapS = THREE.RepeatWrapping;
-    up.wrapT = THREE.RepeatWrapping;
-    down.wrapS = THREE.RepeatWrapping;
-    down.wrapT = THREE.RepeatWrapping;
-    right.wrapS = THREE.RepeatWrapping;
-    right.wrapT = THREE.RepeatWrapping;
-    left.wrapS = THREE.RepeatWrapping;
-    left.wrapT = THREE.RepeatWrapping;
-    const materials = [front, back, up, down, right, left];
-    const skyboxGeo = new THREE.BoxGeometry(500, 500, 500);
-    const skybox = new THREE.Mesh(skyboxGeo, materials);
-    //skybox.position.y = 500 ;
-    scene.add(skybox);
-}
 
 function createPerspectivCamera() {
     var pcamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000000);
     return pcamera;
 }
 
-function createCylinderWorld() {
-    const textureLoader = new THREE.TextureLoader();
-    const front = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/sky.jpg'), side: THREE.DoubleSide });
-    const back = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/sun.jpg'), side: THREE.DoubleSide });
-    const down = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/grass.jpg'), side: THREE.DoubleSide });
-    front.wrapS = THREE.RepeatWrapping;
-    front.wrapT = THREE.RepeatWrapping;
-    back.wrapS = THREE.RepeatWrapping;
-    back.wrapT = THREE.RepeatWrapping;
-    down.wrapS = THREE.RepeatWrapping;
-    down.wrapT = THREE.RepeatWrapping;
-    const geometry = new THREE.CylinderGeometry(50000, 50000, 100000, 100);
-    geometry.translate(0, 49800, 0);
-    const material = [front, back, down];
-    const cylinder = new THREE.Mesh(geometry, material);
-    scene.add(cylinder);
-}
 
 function createEarth() {
     const geometry = new THREE.SphereGeometry(1000000, 64, 32);
@@ -367,7 +341,7 @@ function createEarth() {
     scene.add(sphere);
 }
 
-function createPlane() {
+function createPlane(x, y, z) {
     const geometry = new THREE.CircleGeometry(10000, 32);
     const textureLoader = new THREE.TextureLoader();
     const down = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/grass.jpg'), side: THREE.DoubleSide });
@@ -376,9 +350,9 @@ function createPlane() {
     const material = down;
     const circle = new THREE.Mesh(geometry, material);
     circle.rotation.x = Math.PI / 2;
-    circle.position.x = 0;
-    circle.position.y = -200;
-    circle.position.z = 0;
+    circle.position.x = x;
+    circle.position.y = y;
+    circle.position.z = z;
     scene.add(circle);
 }
 init();
