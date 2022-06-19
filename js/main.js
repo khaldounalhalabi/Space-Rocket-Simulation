@@ -6,31 +6,30 @@ import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples
 var scene = new THREE.Scene();
 var loadedModel;
 var rocketMass = 0.0005;
-var fuelMass = 0.00003;
-var mass = fuelMass + rocketMass;
-var deltaMass = 0.0001;
-var ve = 0.009;
-var dt = 0.0001;
-var k = 0.0015;
-var rho = 0.0001;
-var s = 0.0003;
-var g = 9.8;
-var CL = 10; //lift coifficint
-var G = 1; //gravity const
-var theta = Math.PI / 3;
-var IDelta = 5;
-var earthMass = 5; //5.972 * Math.pow(10, 24);
+var fuelMass = 0.00005;
+var mass = fuelMass + rocketMass; // the whole mass
+var deltaMass = 0.0001; //the change of mass 
+var ve = 0.009; // thrust speed
+var dt = 0.0001; //time step
+var k = 0.0015; //shape coifficient 
+var rho = 0.0001; //air density 
+var s = 0.0003; //the square of the roof that get affect by air resistance
+var g = 9.8; //the acceleration of gravity
+var CL = 10; //lift coifficient
+var G = 1; //gravity coifficient
+var theta = Math.PI / 2; //the angle of the rocket jet
+var IDelta = 5; //moment ireteria of the rocket
+var earthMass = 5;
 var rocket = 2;
 
-var position = new THREE.Vector3(0, 0, 0);
-var velocity = new THREE.Vector3(0, 0, 0);
-var angularVelocity = new THREE.Vector3(0, 0, 0);
-var acceleration = new THREE.Vector3(0, 0, 0);
-var angularAcceleration = new THREE.Vector3(0, 0, 0);
+var position = new THREE.Vector3(0, 0, 0); // position vector
+var velocity = new THREE.Vector3(0, 0, 0); // celocity vector
+var angularVelocity = new THREE.Vector3(0, 0, 0); // angular velocity vector
+var acceleration = new THREE.Vector3(0, 0, 0); // acceleration vector
+var angularAcceleration = new THREE.Vector3(0, 0, 0); //angular acceleration vector
 
-
-var fallingVelocity = new THREE.Vector3(0, 0, 0);
-var fallingAcceleration = new THREE.Vector3(0, 0, 0);
+var fallingVelocity = new THREE.Vector3(0, 0, 0); // falling velocity 
+var fallingAcceleration = new THREE.Vector3(0, 0, 0); // falling acceleration 
 
 // thrust force decleration
 var thrustForce = new THREE.Vector3(0, 1, 0);
@@ -143,8 +142,7 @@ function updateFalling() {
 
 
 function init() {
-    /*creating a new variables value control panel*/
-    var gui = new dat.GUI();
+
     /*creating a perspectiveCamera*/
     var camera = createPerspectivCamera();
 
@@ -228,8 +226,9 @@ function animate(renderer, scene, camera, controls) {
                 acceleration.multiplyScalar(0);
                 angularAcceleration.multiplyScalar(0);
                 camera.lookAt(position);
-                camera.position.y = position.y - 100;
-                camera.position.z = position.z + 1000;
+                camera.position.y = position.y - 200;
+                camera.position.z = position.z + 100;
+                camera.position.x = position.x - 10000;
                 if (i == 59) {
                     fuelMass = fuelMass - 0.00001;
                     i = 0;
@@ -241,8 +240,9 @@ function animate(renderer, scene, camera, controls) {
                 loadedModel.scene.position.y = position.y;
                 loadedModel.scene.position.z = position.z;
                 camera.lookAt(position);
-                camera.position.y = position.y - 100;
-                camera.position.z = position.z + 1000;
+                camera.position.y = position.y - 200;
+                camera.position.z = position.z + 100;
+                camera.position.x = position.x - 10000;
                 acceleration.multiplyScalar(0);
                 angularAcceleration.multiplyScalar(0);
                 if (i == 59) {
@@ -259,8 +259,9 @@ function animate(renderer, scene, camera, controls) {
                 loadedModel.scene.position.y = position.y;
                 loadedModel.scene.position.z = position.z;
                 camera.lookAt(position);
-                camera.position.y = position.y - 100;
-                camera.position.z = position.z + 1000;
+                camera.position.y = position.y - 200;
+                camera.position.z = position.z + 100;
+                camera.position.x = position.x - 10000;
                 loadedModel.scene.lookAt(fallingAcceleration);
                 loadedModel.scene.rotateX(-Math.PI / 2);
                 fallingAcceleration.multiplyScalar(0);
@@ -299,7 +300,6 @@ function createRocket3() {
         gltf.scene.scale.x = 100;
         gltf.scene.scale.y = 100;
         gltf.scene.scale.z = 100;
-        // gltf.scene.rotateX = -Math.PI / 2;
         scene.add(gltf.scene);
         gltf.asset;
         gltf.scene;
@@ -335,14 +335,15 @@ function createPerspectivCamera() {
 
 
 function createEarth() {
-    const geometry = new THREE.SphereGeometry(1000000, 64, 32);
-    const material = new THREE.MeshBasicMaterial({ color: 'rgb(135,206,235)', side: THREE.DoubleSide });
+    const geometry = new THREE.SphereGeometry(100000, 64, 32);
+    const textureLoader = new THREE.TextureLoader();
+    const material = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/Sky.jpg'), side: THREE.DoubleSide });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
 }
 
 function createPlane(x, y, z) {
-    const geometry = new THREE.CircleGeometry(10000, 32);
+    const geometry = new THREE.CircleGeometry(100000, 32);
     const textureLoader = new THREE.TextureLoader();
     const down = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/grass.jpg'), side: THREE.DoubleSide });
     down.wrapS = THREE.RepeatWrapping;
