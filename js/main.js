@@ -1,43 +1,42 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.121.1/build/three.module.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/loaders/GLTFLoader.js";
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
-import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/loaders/DRACOLoader.js'
+import {GLTFLoader} from "https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/loaders/GLTFLoader.js";
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
+import {DRACOLoader} from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/loaders/DRACOLoader.js'
 
-var scene = new THREE.Scene();
-var loadedModel;
-var rocketMass = 0.0005;
-var fuelMass = 0.00005;
-var mass = fuelMass + rocketMass; // the whole mass
-var deltaMass = 0.0001; //the change of mass 
-var ve = 0.009; // thrust speed
-var dt = 0.0001; //time step
-var k = 0.0015; //shape coifficient 
-var rho = 0.0001; //air density 
-var s = 0.0003; //the square of the roof that get affect by air resistance
-var g = 9.8; //the acceleration of gravity
-var CL = 10; //lift coifficient
-var G = 1; //gravity coifficient
-var theta = Math.PI / 2; //the angle of the rocket jet
-var IDelta = 5; //moment ireteria of the rocket
-var earthMass = 5;
-var rocket = 2;
+let scene = new THREE.Scene();
+let loadedModel;
+let rocketMass = 0.0005;
+let fuelMass = 0.00005;
+let mass = fuelMass + rocketMass; // the whole mass
+let deltaMass = 0.0001; //the change of mass
+let ve = 0.009; // thrust speed
+let dt = 0.0001; //time step
+let k = 0.0015; //shape coefficient
+let rho = 0.0001; //air density
+let s = 0.0003; //the square of the roof that get affect by air resistance
+let g = 9.8; //the acceleration of gravity
+let CL = 10; //lift coefficient
+let G = 1; //gravity coefficient
+let theta = Math.PI / 2; //the angle of the rocket jet
+let IDelta = 5; //moment inertia of the rocket
+let earthMass = 5;
 
-var position = new THREE.Vector3(0, 0, 0); // position vector
-var velocity = new THREE.Vector3(0, 0, 0); // celocity vector
-var angularVelocity = new THREE.Vector3(0, 0, 0); // angular velocity vector
-var acceleration = new THREE.Vector3(0, 0, 0); // acceleration vector
-var angularAcceleration = new THREE.Vector3(0, 0, 0); //angular acceleration vector
+let position = new THREE.Vector3(0, 0, 0); // position vector
+let velocity = new THREE.Vector3(0, 0, 0); // velocity vector
+let angularVelocity = new THREE.Vector3(0, 0, 0); // angular velocity vector
+let acceleration = new THREE.Vector3(0, 0, 0); // acceleration vector
+let angularAcceleration = new THREE.Vector3(0, 0, 0); //angular acceleration vector
 
-var fallingVelocity = new THREE.Vector3(0, 0, 0); // falling velocity 
-var fallingAcceleration = new THREE.Vector3(0, 0, 0); // falling acceleration 
+let fallingVelocity = new THREE.Vector3(0, 0, 0); // falling velocity
+let fallingAcceleration = new THREE.Vector3(0, 0, 0); // falling acceleration
 
-// thrust force decleration
-var thrustForce = new THREE.Vector3(0, 1, 0);
+// thrust force declaration
+let thrustForce = new THREE.Vector3(0, 1, 0);
 thrustForce.normalize();
 thrustForce.setLength(ve * (deltaMass / dt));
 
-//lift force decleration
-var liftForce = new THREE.Vector3(1, 0, 0);
+//lift force declaration
+let liftForce = new THREE.Vector3(1, 0, 0);
 liftForce.normalize();
 liftForce.setLength(0.5 * s * rho * CL);
 liftForce.multiply(velocity);
@@ -45,47 +44,43 @@ liftForce.multiply(velocity);
 
 
 /* gravitational force */
-var center = new THREE.Vector3(0, -100, 0);
-var gravityForce = new THREE.Vector3(0, -1, 0);
-var distanceSq = gravityForce.distanceToSquared(center);
+let center = new THREE.Vector3(0, -100, 0);
+let gravityForce = new THREE.Vector3(0, -1, 0);
+let distanceSq = gravityForce.distanceToSquared(center);
 gravityForce.setLength((G * earthMass * mass) / distanceSq);
 
 
-
-
-//air resistance force decleration
-var airResistanceForce = new THREE.Vector3(0, -1, 0);
+//air resistance force declaration
+let airResistanceForce = new THREE.Vector3(0, -1, 0);
 airResistanceForce.normalize();
 airResistanceForce.setLength(0.5 * k * rho * s);
 airResistanceForce.multiply(velocity);
 airResistanceForce.multiply(velocity);
 
 
-
-//falling air resistance force decleration
-var fallingAirResistanceForce = new THREE.Vector3(0, 1, 0);
+//falling air resistance force declaration
+let fallingAirResistanceForce = new THREE.Vector3(0, 1, 0);
 fallingAirResistanceForce.normalize();
 fallingAirResistanceForce.setLength(0.5 * k * rho * s);
 fallingAirResistanceForce.multiply(fallingVelocity);
 fallingAirResistanceForce.multiply(fallingVelocity);
 
 
-//Weight Force decleration
-var weight = new THREE.Vector3(0, -1, 0);
+//Weight Force declaration
+let weight = new THREE.Vector3(0, -1, 0);
 weight.normalize();
 weight.setLength(mass * g);
 
 
-// thrust Force Moment Decleration
-var thrustMoment = new THREE.Vector3(0, 0, 0);
+// thrust Force Moment Declaration
+let thrustMoment = new THREE.Vector3(0, 0, 0);
 thrustMoment.normalize();
-var jetSpanRadius = new THREE.Vector3(100, 0, 1);
+let jetSpanRadius = new THREE.Vector3(100, 0, 1);
 thrustMoment.crossVectors(thrustForce, jetSpanRadius);
 thrustMoment.multiplyScalar(theta);
 
-
 function applyForce(force) {
-    var f = new THREE.Vector3;
+    let f = new THREE.Vector3;
     f.copy(force);
     f = f.divideScalar(mass);
     acceleration.add(f);
@@ -93,13 +88,13 @@ function applyForce(force) {
 }
 
 function applyForceFalling(force) {
-    var f = new THREE.Vector3
+    let f = new THREE.Vector3
     f = f.copy(force);
     fallingAcceleration.add(f);
 }
 
 function applyMoment(Moment) {
-    var M = new THREE.Vector3;
+    let M = new THREE.Vector3;
     M.copy(Moment);
     M = M.divideScalar(IDelta);
     angularAcceleration.add(M);
@@ -115,11 +110,9 @@ function update() {
     angularVelocity.add(angularAcceleration);
     position.add(velocity);
     position.add(angularVelocity);
-
 }
 
 function updateWithMoment() {
-
     applyForce(thrustForce);
     applyForce(weight);
     applyForce(airResistanceForce);
@@ -142,33 +135,21 @@ function updateFalling() {
 
 
 function init() {
-
     /*creating a perspectiveCamera*/
-    var camera = createPerspectivCamera();
+    let camera = createPerspectiveCamera();
 
     /*creating light*/
     const light = new THREE.AmbientLight(0x404040, 5); // soft white light
-
-    switch (rocket) {
-        case 1:
-            /*adding models*/
-            createRocket1();
-            /*create world */
-            createEarth();
-            createPlane(0, -200, 0);
-            break;
-        case 2:
-            createRocket3();
-            createEarth();
-            createPlane(0, 0, 0);
-    }
+    createRocket3();
+    createEarth();
+    createPlane(0, 0, 0);
 
     /*adding objects to the Scene*/
     scene.add(light);
-    var renderer = new THREE.WebGLRenderer({ antialias: true });
+    let renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById("webgl").appendChild(renderer.domElement);
-    var controls = new OrbitControls(camera, renderer.domElement);
+    let controls = new OrbitControls(camera, renderer.domElement);
     controls.target = new THREE.Vector3(10, -450, -200);
     let radius = 500;
     let height = 1000;
@@ -188,13 +169,21 @@ function init() {
 }
 
 
-
-
 /*Creating an animating scene*/
 
-var move = 0;
-var y;
-var i = 0;
+let move = 0;
+let y;
+let i = 0;
+
+function updateCameraAndRocketPosition(camera) {
+    loadedModel.scene.position.x = position.x;
+    loadedModel.scene.position.y = position.y;
+    loadedModel.scene.position.z = position.z;
+    camera.lookAt(position);
+    camera.position.y = position.y - 200;
+    camera.position.z = position.z + 100;
+    camera.position.x = position.x - 10000;
+}
 
 function animate(renderer, scene, camera, controls) {
     renderer.render(scene, camera);
@@ -202,15 +191,15 @@ function animate(renderer, scene, camera, controls) {
 
 
     if (loadedModel) {
-        document.addEventListener('keydown', function(event) {
-            if (event.keyCode == 13) {
+        document.addEventListener('keydown', function (event) {
+            if (event.code === 'Enter') {
                 move = 1;
-            } else if (event.keyCode == 16) {
+            } else if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
                 move = 0;
             }
         });
 
-        if (move == 1) {
+        if (move === 1) {
 
             i++;
             y = loadedModel.scene.position.y;
@@ -229,23 +218,17 @@ function animate(renderer, scene, camera, controls) {
                 camera.position.y = position.y - 200;
                 camera.position.z = position.z + 100;
                 camera.position.x = position.x - 10000;
-                if (i == 59) {
+                if (i === 59) {
                     fuelMass = fuelMass - 0.00001;
                     i = 0;
                 }
             } else if (fuelMass > 0) {
 
                 update();
-                loadedModel.scene.position.x = position.x;
-                loadedModel.scene.position.y = position.y;
-                loadedModel.scene.position.z = position.z;
-                camera.lookAt(position);
-                camera.position.y = position.y - 200;
-                camera.position.z = position.z + 100;
-                camera.position.x = position.x - 10000;
+                updateCameraAndRocketPosition(camera);
                 acceleration.multiplyScalar(0);
                 angularAcceleration.multiplyScalar(0);
-                if (i == 59) {
+                if (i === 59) {
                     fuelMass = fuelMass - 0.00001;
                     console.log('fuelMass', fuelMass);
                     i = 0;
@@ -255,20 +238,14 @@ function animate(renderer, scene, camera, controls) {
 
                 updateFalling();
                 console.log('fall acceleration', fallingAcceleration.y);
-                loadedModel.scene.position.x = position.x;
-                loadedModel.scene.position.y = position.y;
-                loadedModel.scene.position.z = position.z;
-                camera.lookAt(position);
-                camera.position.y = position.y - 200;
-                camera.position.z = position.z + 100;
-                camera.position.x = position.x - 10000;
+                updateCameraAndRocketPosition(camera);
                 loadedModel.scene.lookAt(fallingAcceleration);
                 loadedModel.scene.rotateX(-Math.PI / 2);
                 fallingAcceleration.multiplyScalar(0);
             }
         }
 
-        if (move == 0) {
+        if (move === 0) {
             loadedModel.scene.position.y = 0;
             loadedModel.scene.position.z = 0;
             loadedModel.scene.position.x = 0;
@@ -283,16 +260,16 @@ function animate(renderer, scene, camera, controls) {
 
         }
     }
-    requestAnimationFrame(function() {
+    requestAnimationFrame(function () {
         animate(renderer, scene, camera, controls);
     });
 }
 
 function createRocket3() {
     const dracoLoader = new DRACOLoader();
-    const RocketLoader = new GLTFLoader().setPath('models/rocket/rocket3/');
+    const RocketLoader = (new GLTFLoader()).setPath('models/rocket/rocket3/');
     RocketLoader.setDRACOLoader(dracoLoader);
-    RocketLoader.load('MeteorII V6.gltf', function(gltf) {
+    RocketLoader.load('MeteorII V6.gltf', function (gltf) {
         loadedModel = gltf;
         gltf.scene.position.x = 0;
         gltf.scene.position.y = -100;
@@ -301,43 +278,21 @@ function createRocket3() {
         gltf.scene.scale.y = 100;
         gltf.scene.scale.z = 100;
         scene.add(gltf.scene);
-        gltf.asset;
-        gltf.scene;
-        gltf.scenes;
-        gltf.cameras;
-
     });
 }
 
-function createRocket1() {
-    const dracoLoader = new DRACOLoader();
-    const RocketLoader = new GLTFLoader().setPath('models/rocket/rocket1/');
-    RocketLoader.setDRACOLoader(dracoLoader);
-    RocketLoader.load('Space Rocket.gltf', function(gltf) {
-        loadedModel = gltf;
-        gltf.scene.scale.x = 100;
-        gltf.scene.scale.y = 100;
-        gltf.scene.scale.z = 100;
-        scene.add(gltf.scene);
-        gltf.asset;
-        gltf.scene;
-        gltf.scenes;
-        gltf.cameras;
-
-    });
-}
-
-
-function createPerspectivCamera() {
-    var pcamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000000);
-    return pcamera;
+function createPerspectiveCamera() {
+    return new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000000);
 }
 
 
 function createEarth() {
     const geometry = new THREE.SphereGeometry(100000, 64, 32);
     const textureLoader = new THREE.TextureLoader();
-    const material = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/Sky.jpg'), side: THREE.DoubleSide });
+    const material = new THREE.MeshBasicMaterial({
+        map: textureLoader.load('./textures/Sky.jpg'),
+        side: THREE.DoubleSide
+    });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
 }
@@ -345,15 +300,15 @@ function createEarth() {
 function createPlane(x, y, z) {
     const geometry = new THREE.CircleGeometry(100000, 32);
     const textureLoader = new THREE.TextureLoader();
-    const down = new THREE.MeshBasicMaterial({ map: textureLoader.load('./textures/grass.jpg'), side: THREE.DoubleSide });
+    const down = new THREE.MeshBasicMaterial({map: textureLoader.load('./textures/grass.jpg'), side: THREE.DoubleSide});
     down.wrapS = THREE.RepeatWrapping;
     down.wrapT = THREE.RepeatWrapping;
-    const material = down;
-    const circle = new THREE.Mesh(geometry, material);
+    const circle = new THREE.Mesh(geometry, down);
     circle.rotation.x = Math.PI / 2;
     circle.position.x = x;
     circle.position.y = y;
     circle.position.z = z;
     scene.add(circle);
 }
+
 init();
